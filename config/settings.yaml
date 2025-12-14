@@ -1,0 +1,96 @@
+# TRAFFIX Configuration
+
+# Regions
+regions:
+  - Austin
+  - All
+
+region_mapping:
+  austin: "Austin"
+  all: "All"
+
+# POC Date Constraints
+poc_date_range:
+  start: "2025-10-19"
+  end: "2025-11-02"
+
+# =============================================================================
+# AUSTIN HOTSPOT PREDICTION CONFIGURATION
+# =============================================================================
+austin:
+  # Grid system - divides Austin into 100 sectors (10x10)
+  grid:
+    bounds:
+      north: 30.5167    # North Austin boundary
+      south: 30.0833    # South Austin boundary
+      east: -97.5833    # East Austin boundary
+      west: -97.9167    # West Austin boundary
+    rows: 10
+    cols: 10
+    total_sectors: 100
+
+  # Data source APIs
+  data_sources:
+    traffic_incidents:
+      url: "https://data.austintexas.gov/resource/dx9v-zd7x.json"
+      rate_limit: 1000  # requests per hour (Socrata limit)
+      fields:
+        - traffic_report_id
+        - published_date
+        - issue_reported
+        - location
+        - latitude
+        - longitude
+        - address
+        - status
+
+    noaa_weather:
+      base_url: "https://api.weather.gov"
+      station: "KAUS"           # Austin-Bergstrom International
+      grid_point: "EWX/143,91"  # Austin NWS forecast grid
+
+  # Map visualization center
+  center:
+    lat: 30.2672
+    lon: -97.7431
+    default_zoom: 11
+
+  # Risk classification thresholds
+  risk_thresholds:
+    minimal: 0.0
+    low: 0.3
+    medium: 0.6
+    high: 0.8
+    critical: 0.95
+
+  # Weather impact multipliers
+  weather_multipliers:
+    rain_probability_high: 1.4      # >70% precip probability
+    active_precipitation: 1.3       # >0.1" precip
+    heavy_precipitation: 1.5        # >0.5" precip
+    freezing: 3.0                   # <32°F
+    extreme_heat: 1.5               # >100°F
+    high_wind: 1.3                  # >30 mph
+    low_visibility: 1.5             # <3 miles
+    max_multiplier: 5.0             # Cap total weather factor
+
+  # Time-of-day risk factors
+  time_factors:
+    rush_hour_peak: 1.5             # 7-8 AM, 5-6 PM
+    rush_hour_shoulder: 1.25        # 6, 9 AM, 4, 7 PM
+    overnight: 0.5                  # 12-5 AM
+    late_night: 0.7                 # 10 PM - midnight
+    midday: 1.0                     # default
+
+  # Deployment recommendations
+  deployment:
+    max_recommendations: 10         # Top N sectors to recommend
+    critical_units: 2               # Units for CRITICAL sectors
+    high_units: 1                   # Units for HIGH sectors
+
+# Logging
+logging:
+  level: INFO
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: logs/traffix.log
+

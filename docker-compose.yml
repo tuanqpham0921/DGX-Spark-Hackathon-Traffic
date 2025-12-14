@@ -1,0 +1,89 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: traffix-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: traffix
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d traffix"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Qdrant Vector Database
+  qdrant:
+    image: qdrant/qdrant:v1.12.1
+    container_name: traffix-qdrant
+    restart: unless-stopped
+    ports:
+      - "6333:6333" # REST API
+      - "6334:6334" # gRPC
+    volumes:
+      - qdrant_data:/qdrant/storage
+    environment:
+      QDRANT__SERVICE__GRPC_PORT: 6334
+    healthcheck:
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/6333' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  # TRAFFIX Backend (Python)
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: traffix-backend
+    restart: unless-stopped
+    ports:
+      - "8502:8501" # Streamlit (host:container)
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - TAVILY_API_KEY=${TAVILY_API_KEY}
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_NAME=traffix
+      - DB_USER=postgres
+      - DB_PASSWORD=${DB_PASSWORD:-password}
+      - QDRANT_HOST=qdrant
+      - QDRANT_PORT=6333
+      - LANGSMITH_API_KEY=${LANGSMITH_API_KEY:-}
+    volumes:
+      - ./:/app
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+      qdrant:
+        condition: service_healthy
+    command: streamlit run ui/streamlit_app.py --server.address 0.0.0.0
+
+  # Next.js Frontend (optional)
+  # frontend:
+  #   build:
+  #     context: ./frontend_v0
+  #     dockerfile: Dockerfile.frontend
+  #   container_name: traffix-frontend
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     - NEXT_PUBLIC_API_URL=http://backend:8501
+  #   depends_on:
+  #     - backend
+  #   profiles:
+  #     - frontend  # Only starts with: docker compose --profile frontend up
+
+volumes:
+  postgres_data:
+  qdrant_data:
