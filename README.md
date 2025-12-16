@@ -272,6 +272,7 @@ MIT License
 ## 🤝 Contributing
 
 Contributions welcome! Please read CONTRIBUTING.md for details.
+[Inspiration from Traffix](https://github.com/bzgold/TRAFFIX)
 
 ## 📧 Support
 
