@@ -1,8 +1,9 @@
-# TRAFFIX — The Traffic Insight Agent
+# The Austin Traffic Insight Agent
 
 An AI-powered storytelling and analytics assistant for transportation analysts, planners, and operations managers in the **Austin Hotspot Prediction** for tow truck staging.
 
-TRAFFIX helps users understand *why* congestion patterns change by combining structured data (Postgres), unstructured data (Tavily API, OpenAI), and agentic reasoning.
+The agent helps users understand *why* congestion patterns change by combining structured data (Postgres), unstructured data, and agentic reasoning.
+It also uses a local LLM for privacy and analyze the results.
 
 ## Quick Start (TL;DR)
 
@@ -16,7 +17,6 @@ pip install -r requirements.txt
 
 # 2. Configure environment
 cp .env.example .env
-# Edit .env with your OPENAI_API_KEY and TAVILY_API_KEY
 
 # 3. Start infrastructure (PostgreSQL + Qdrant)
 docker compose up -d postgres qdrant
@@ -49,29 +49,10 @@ streamlit run ui/austin_hotspot_dashboard.py
 # Open http://localhost:8501 for dashboard, http://localhost:8000/docs for API
 ```
 
-## Features
-
-- **Multi-Agent RAG System**: Orchestrated workflow with specialized agents
-- **Region-Aware Analysis**: Support for DC, Virginia, and Austin
-- **Austin Hotspot Prediction**: Real-time risk scoring for 100 grid sectors
-- **Three Operating Modes**:
-  - Quick Mode: Daily digest with key insights
-  - Deep Mode: Comprehensive multi-section reports
-  - PDF Reader: Document analysis and Q&A
-- **Data Integration**: PostgreSQL + Qdrant + Tavily API + NOAA Weather
-- **Advanced Retrieval**: Multiple strategies (Naive, BM25, Multi-Query, Ensemble)
-- **Quality Assurance**: RAGAS evaluation metrics
-- **Interactive UI**: Streamlit dashboards + FastAPI backend
-
 ## Prerequisites
 
 - Python 3.10+
 - Docker & Docker Compose
-- API Keys:
-  - **OpenAI** (required for LLM)
-  - **Tavily** (required for web search)
-  - Cohere (optional, for reranking)
-  - LangSmith (optional, for tracing)
 
 **Note**: Austin data sources (Austin Open Data Portal, NOAA Weather) are free public APIs - no keys needed.
 
@@ -280,101 +261,6 @@ docker compose exec -T postgres psql -U postgres -d traffix < scripts/init-db.sq
 
 # Connect to database
 docker compose exec postgres psql -U postgres -d traffix
-```
-
-## 📁 Project Structure
-
-```
-traffix/
-├── agents/              # Multi-agent system
-│   ├── supervisor.py    # Task router and orchestrator
-│   ├── research.py      # Data analyst
-│   ├── writer.py        # Report generator
-│   ├── editor.py        # Quality checker
-│   └── evaluator.py     # QA and metrics
-├── data/                # Database integration
-│   ├── db_connection.py # PostgreSQL connection
-│   └── queries.py       # SQL queries
-├── retrievers/          # RAG retrieval strategies
-│   ├── naive.py
-│   ├── bm25.py
-│   ├── multi_query.py
-│   └── ensemble.py
-├── ui/                  # User interfaces
-│   ├── streamlit_app.py # Streamlit POC
-│   └── frontend_v0/     # V0/Vercel demo
-├── evaluation/          # Quality metrics
-│   └── ragas_eval.py    # RAGAS evaluation
-├── config/              # Configuration
-│   └── settings.yaml    # App settings
-├── utils/               # Utilities
-├── workflows/           # LangGraph workflows
-└── tests/               # Test cases
-```
-
-## 🎯 Usage Examples
-
-### Quick Mode
-```python
-from workflows.graph import create_workflow
-
-workflow = create_workflow()
-result = workflow.invoke({
-    "mode": "quick",
-    "region": "Virginia",
-    "query": "Why was congestion higher yesterday evening?"
-})
-```
-
-### Deep Mode
-```python
-result = workflow.invoke({
-    "mode": "deep",
-    "region": "District of Columbia",
-    "query": "Analyze I-395 congestion patterns for the past week"
-})
-```
-
-## 📊 Data Schema
-
-### Events Table
-- **office_event_id_tag**: Unique event ID
-- **system**: Source system (VDOT, WAZE)
-- **event_details_level_1/2/3**: Event classification
-- **start_time**, **end_time**: Timestamps
-- **latitude**, **longitude**: Location
-- **state**: Region (DC/VA)
-
-### Weather Table
-- **datetime**: Timestamp
-- **temp**, **humidity**, **precip**: Weather conditions
-- **windspeed**, **visibility**: Environmental factors
-
-### Trips Table
-- **date**, **hour**: Temporal keys
-- **region**: DC or Virginia
-- **total_car_travel_actual/forecast**: Traffic volume
-- **network_reliability**, **network_efficiency**: Performance metrics
-
-## 🧪 Testing
-
-```bash
-pytest tests/
-```
-
-## 📈 Evaluation
-
-Run RAGAS evaluation:
-```bash
-python evaluation/ragas_eval.py
-```
-
-## 🔍 Monitoring
-
-View traces in LangSmith:
-```bash
-# Ensure LANGCHAIN_TRACING_V2=true in .env
-# Visit https://smith.langchain.com
 ```
 
 ## 📝 License
