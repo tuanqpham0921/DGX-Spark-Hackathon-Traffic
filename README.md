@@ -5,7 +5,7 @@ An AI-powered storytelling and analytics assistant for transportation analysts, 
 The agent helps users understand *why* congestion patterns change by combining structured data (Postgres), unstructured data, and agentic reasoning.
 It also uses a local LLM for privacy and analyze the results.
 
-[Watch Demo](https://drive.google.com/file/d/1gOD9wSWWmw6dXE9fNnZTzFxk2nn4pJVd/view?usp=sharing)
+▶️[Watch Demo](https://drive.google.com/file/d/1gOD9wSWWmw6dXE9fNnZTzFxk2nn4pJVd/view?usp=sharing)
 
 ## Quick Start (TL;DR)
 
